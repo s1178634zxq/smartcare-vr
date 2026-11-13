@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#eaf1ed" />
+  <meta name="description" content="SmartCare VR 智慧康养沉浸式人才培训平台：融合生成式 AI 与 VR，面向养老护理人员提供情景模拟、智能指导与能力评估。" />
+  <title>SmartCare VR · 智慧康养沉浸式人才培训平台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%231d6b5b'/%3E%3Cpath d='M18 32h9l4-11 6 23 4-12h7' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three.module.min.js"}}
+  </script>
+</head>
+<body>
+  <main id="app">
+    <div id="scene" role="img" aria-label="可旋转与缩放的三维智慧康养培训空间"></div>
+    <div class="scene-vignette" aria-hidden="true"></div>
+
+    <header class="topbar glass">
+      <a class="brand" href="./" aria-label="SmartCare VR 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none"><path d="M8 20h7l3.3-8.5L24.5 30l3.3-10H33" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-copy">
+          <strong>SmartCare <span>VR</span></strong>
+          <small>智慧康养沉浸式人才培训平台</small>
+        </span>
+      </a>
+      <div class="topbar-context" aria-label="当前模块">
+        <span>人才培训</span><i></i><span>互动情景演示</span>
+      </div>
+      <nav class="top-actions" aria-label="页面工具">
+        <button class="icon-button mobile-only" id="flow-toggle" aria-label="打开训练流程" title="训练流程">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>
+        </button>
+        <button class="text-button" id="about-button">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          <span>项目说明</span>
+        </button>
+        <button class="icon-button" id="fullscreen-button" aria-label="进入全屏" title="全屏浏览">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M8.5 4H4v4.5M15.5 4H20v4.5M20 15.5V20h-4.5M8.5 20H4v-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </nav>
+    </header>
+
+    <aside class="scene-panel glass" aria-label="培训情景选择">
+      <div class="panel-heading">
+        <div><span class="eyebrow">TRAINING SCENES</span><h2>选择训练情景</h2></div>
+        <span class="count-badge">03</span>
+      </div>
+      <div id="scenario-list" class="scenario-list"></div>
+      <div class="scene-panel-footer">
+        <span class="tiny-shield" aria-hidden="true">✓</span>
+        <p>在可反复练习的虚拟环境中，培养护理判断与沟通能力。</p>
+      </div>
+    </aside>
+
+    <aside class="training-panel glass" id="training-panel" aria-label="训练流程与模拟评估">
+      <div class="training-panel-head">
+        <div><span class="eyebrow">LEARNING LOOP</span><h2>六步训练闭环</h2></div>
+        <button class="panel-close mobile-only" id="flow-close" aria-label="关闭训练流程">×</button>
+      </div>
+      <ol id="step-list" class="step-list"></ol>
+      <div class="assessment-preview">
+        <div class="assessment-title"><span>能力评估</span><small>教学模拟数据</small></div>
+        <div id="mini-bars" class="mini-bars"></div>
+      </div>
+      <p class="panel-footnote">AI 提供训练辅助与反馈，专业判断仍由护理人员完成。</p>
+    </aside>
+
+    <div class="view-controls glass" role="group" aria-label="3D 视角控制">
+      <button id="orbit-view" class="view-button active" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="12" rx="9" ry="4.5" stroke="currentColor" stroke-width="1.6" transform="rotate(-30 12 12)"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></svg>
+        <span>导师视角</span>
+      </button>
+      <button id="immersive-view" class="view-button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8.5 12 5l8 3.5V15l-8 4-8-4V8.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m4 8.5 8 4 8-4M12 12.5V19" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span>学员视角</span>
+      </button>
+      <span class="control-divider"></span>
+      <button id="reset-camera" class="reset-button" aria-label="重置视角" title="重置视角">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 8a8 8 0 1 1-1 7M5 4v4h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="world-labels" aria-label="场景人物">
+      <button class="world-label elder" id="elder-label"><span class="label-dot"></span><span id="elder-label-text">陈奶奶 · AI 虚拟老人</span></button>
+      <button class="world-label caregiver" id="caregiver-label"><span class="label-dot"></span><span>护理学员</span></button>
+    </div>
+
+    <section class="coach-card glass" aria-live="polite" aria-label="AI 智能导师与播放控制">
+      <div class="coach-accent" id="coach-accent"></div>
+      <div class="coach-content">
+        <div class="coach-meta">
+          <div class="coach-person">
+            <span class="mentor-avatar" aria-hidden="true">林</span>
+            <span><strong>AI 智能导师 · 林澜</strong><small id="coach-step-label">步骤 1 / 6 · 观察环境</small></span>
+          </div>
+          <span class="scenario-chip" id="scenario-chip">跌倒处理</span>
+        </div>
+        <h1 id="coach-title">先观察，再行动</h1>
+        <p id="coach-text">注意老人姿态、周围障碍物与可呼叫的支援。高风险护理情境中，规范判断比迅速搬动更重要。</p>
+        <div class="objective-row">
+          <span class="objective-icon" aria-hidden="true">◎</span>
+          <span id="objective-text">本步目标：识别风险，确保现场安全</span>
+        </div>
+      </div>
+      <div class="playback-area">
+        <div class="playback-topline">
+          <span id="playback-status"><i class="status-dot"></i>准备开始</span>
+          <span id="step-timer">00:00 / 00:06</span>
+        </div>
+        <div class="progress-track"><div id="step-progress" class="progress-fill"></div></div>
+        <div class="playback-controls">
+          <button id="prev-step" class="step-button" aria-label="上一步" title="上一步">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M15 6 9 12l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="play-button" class="play-button" aria-label="开始训练">
+            <svg id="play-icon" viewBox="0 0 24 24" fill="none"><path d="m9 6 9 6-9 6V6Z" fill="currentColor"/></svg>
+            <span id="play-text">开始训练</span>
+          </button>
+          <button id="next-step" class="step-button" aria-label="下一步" title="下一步">
+            <svg viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="bottom-tools">
+      <button id="report-button" class="report-button glass">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 3h9l4 4v14H6V3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5M9 12h6M9 16h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>训练报告</span><i id="report-notice"></i>
+      </button>
+      <span class="navigation-hint">拖动旋转 · 滚轮缩放 · 空格暂停</span>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-brand"><span class="brand-mark large"><svg viewBox="0 0 40 40" fill="none"><path d="M8 20h7l3.3-8.5L24.5 30l3.3-10H33" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+      <strong>SmartCare <span>VR</span></strong>
+      <p>正在构建智慧康养培训空间</p>
+      <div class="loading-track"><i></i></div>
+    </div>
+
+    <div id="welcome-overlay" class="welcome-overlay hidden">
+      <section class="welcome-card">
+        <div class="welcome-eyebrow"><span></span>GENERATIVE AI × VIRTUAL REALITY</div>
+        <h2>把高风险练习，<br />放进安全的虚拟空间。</h2>
+        <p>面向养老护理人员的沉浸式训练原型。与 AI 虚拟老人互动，在情景实践中锻炼专业判断、应急响应与沟通能力。</p>
+        <div class="welcome-features">
+          <div><strong>03</strong><span>核心护理情景</span></div>
+          <div><strong>06</strong><span>训练反馈步骤</span></div>
+          <div><strong>04</strong><span>能力评估维度</span></div>
+        </div>
+        <div class="welcome-actions">
+          <button id="start-training" class="primary-button">开始情景训练<span>→</span></button>
+          <button id="explore-space" class="secondary-button">先自由探索</button>
+        </div>
+        <small class="welcome-note">网页交互原型 · 无需 VR 设备 · 评估结果为演示数据</small>
+      </section>
+    </div>
+
+    <dialog id="about-dialog" class="modal about-modal">
+      <button class="modal-close" data-close="about-dialog" aria-label="关闭项目说明">×</button>
+      <span class="eyebrow">ABOUT THE PROJECT</span>
+      <h2>技术服务于人的成长</h2>
+      <p class="modal-intro">SmartCare VR 融合生成式 AI 与 VR，为传统及未来养老护理人员提供可重复、可反馈、个性化的情景训练。</p>
+      <div class="synergy-flow" aria-label="AI 与 VR 协同流程">
+        <div><span>01</span><strong>进入虚拟情景</strong><small>VR 提供安全实践环境</small></div>
+        <i>→</i>
+        <div><span>02</span><strong>完成互动任务</strong><small>AI 驱动虚拟老人与导师</small></div>
+        <i>→</i>
+        <div><span>03</span><strong>获得学习反馈</strong><small>依据过程记录生成建议</small></div>
+      </div>
+      <h3>面向未来岗位的五项核心能力</h3>
+      <div class="competency-tags"><span>基础养老护理</span><span>沟通与心理关怀</span><span>突发事件应急</span><span>AI 与智能设备应用</span><span>信息管理与隐私保护</span></div>
+      <div class="principle-note"><strong>设计边界</strong><p>虚拟训练不能替代真实护理经验。平台定位为培训辅助工具，应与专业导师审核、真实环境监督实践和隐私保护机制共同使用。</p></div>
+    </dialog>
+
+    <dialog id="report-dialog" class="modal report-modal">
+      <button class="modal-close" data-close="report-dialog" aria-label="关闭训练报告">×</button>
+      <div class="report-heading">
+        <div><span class="eyebrow">PERSONAL LEARNING REPORT</span><h2>个人能力报告</h2><p id="report-scenario">情景 01 · 老人跌倒处理</p></div>
+        <div class="score-ring"><strong id="overall-score">92</strong><span>综合得分</span></div>
+      </div>
+      <div class="report-demo-label">教学演示 · 以下为模拟评估结果</div>
+      <div id="report-bars" class="report-bars"></div>
+      <div class="report-feedback"><span class="mentor-avatar">林</span><div><strong>AI 导师建议</strong><p id="report-feedback-text"></p></div></div>
+      <div class="next-recommendation"><span>下一阶段推荐</span><strong id="report-recommendation"></strong></div>
+      <div class="report-actions">
+        <button id="replay-scenario" class="secondary-button">重新训练</button>
+        <button id="next-scenario" class="primary-button">下一情景<span>→</span></button>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status"></div>
+    <noscript><div class="noscript">请启用 JavaScript 以进入 SmartCare VR 三维培训空间。</div></noscript>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
